@@ -55,8 +55,28 @@ router.post(
             const products: Product[] = [];
 
             // Aqui, eu iterei sobre as linhas do arquivo e as armazenei no array de produtos.
+            let productsAdded = 0; // Variável para contar produtos adicionados.
+
             for await (let line of productsLine) {
                 const productLineSplit = line.split(",");
+
+                // Aqui, eu verifico se o produto já existe no banco de dados.
+                const productExists = await prisma.products.findFirst({
+                    where: {
+                        code_bar: productLineSplit[0],
+                    },
+                });
+
+                // Se o produto já existir no banco de dados, eu não adiciono novamente.
+                if (productExists) {
+                    console.log("O produto já existe no banco de dados.");
+                    continue;
+                } else {
+                    console.log("O produto foi adicionado no banco de dados.");
+                    // Incremento o contador de produtos adicionados.
+                    productsAdded++;
+                }
+
                 products.push({
                     code_bar: productLineSplit[0],
                     description: productLineSplit[1],
@@ -77,8 +97,8 @@ router.post(
                 });
             }
 
-            // Aqui, eu retorno uma resposta JSON com os produtos lidos do arquivo.
-            return response.json(products);
+            // Aqui, eu retorno uma resposta JSON com os produtos lidos do arquivo e a quantidade de produtos adicionados.
+            return response.json({ products, productsAdded });
         }
 
         // Se o usuário não enviou um arquivo, eu simplesmente retorno uma resposta vazia.
