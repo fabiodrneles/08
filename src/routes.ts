@@ -6,6 +6,8 @@ import readline from "readline";
 // Importo o módulo Multer, que é usado para lidar com uploads de arquivos.
 import multer from "multer";
 
+import { client } from "./database/client";
+
 // Crio uma instância do Multer com as configurações padrão.
 const multerConfig = multer();
 
@@ -61,6 +63,17 @@ router.post(
                     description: productLineSplit[1],
                     price: Number(productLineSplit[2]),
                     quantity: Number(productLineSplit[3]),
+                });
+            }
+
+            for await (let {code_bar, description, price, quantity}of products) {
+                await client.products.create({
+                    data: {
+                        code_bar,
+                        description,
+                        price,
+                        quantity,
+                    }
                 });
             }
 
