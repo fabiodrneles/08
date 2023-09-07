@@ -54,7 +54,6 @@ router.post(
             const products: Product[] = [];
 
             // Aqui, eu iterei sobre as linhas do arquivo e as armazenei no array de produtos.
-            // **(6)**
             for await (let line of productsLine) {
                 const productLineSplit = line.split(",");
                 products.push({
