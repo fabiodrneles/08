@@ -6,7 +6,11 @@ import readline from "readline";
 // Importo o módulo Multer, que é usado para lidar com uploads de arquivos.
 import multer from "multer";
 
-import { client } from "./database/client";
+// Importo o módulo Prisma, que é usado para acessar o banco de dados.
+import { PrismaClient } from "@prisma/client";
+
+// Crio uma instância do PrismaClient.
+const prisma = new PrismaClient();
 
 // Crio uma instância do Multer com as configurações padrão.
 const multerConfig = multer();
@@ -29,25 +33,20 @@ router.post(
     async (request: Request, response: Response) => {
 
         // Aqui, eu acessei a propriedade file do objeto request. A propriedade file é um objeto File que contém informações sobre o arquivo enviado pelo usuário.
-        // **(1)**
         const { file } = request;
 
         // Se o usuário enviou um arquivo, eu verifico se o arquivo é válido.
-        // **(2)**
         if (file) {
 
             // Aqui, eu acessei a propriedade buffer do objeto file. A propriedade buffer é um array de bytes que representa o conteúdo do arquivo.
-            // **(3)**
             const buffer = file.buffer;
 
             // Aqui, eu criei um objeto Readable a partir do array de bytes. O objeto Readable pode ser usado para ler o conteúdo do arquivo.
-            // **(4)**
             const readableFile = new Readable();
             readableFile.push(buffer);
             readableFile.push(null);
 
             // Aqui, eu criei um objeto readline.Interface a partir do objeto Readable. O objeto readline.Interface pode ser usado para ler linhas do arquivo.
-            // **(5)**
             const productsLine = readline.createInterface({
                 input: readableFile,
             });
@@ -66,28 +65,24 @@ router.post(
                 });
             }
 
-            for await (let {code_bar, description, price, quantity}of products) {
-                await client.products.create({
+            // Aqui, eu adiciono os produtos ao banco de dados.
+            for (const product of products) {
+                await prisma.products.create({
                     data: {
-                        code_bar,
-                        description,
-                        price,
-                        quantity,
+                        code_bar: product.code_bar,
+                        description: product.description,
+                        price: product.price,
+                        quantity: product.quantity,
                     }
                 });
             }
 
             // Aqui, eu retorno uma resposta JSON com os produtos lidos do arquivo.
-            // **(7)**
             return response.json(products);
         }
 
         // Se o usuário não enviou um arquivo, eu simplesmente retorno uma resposta vazia.
-        // **(8)**
         return response.send();
-
-        // Aqui, eu deixaria o código para o tratamento do banco de dados e da manipulação do arquivo.
-        // **(9)**
     }
 );
 
